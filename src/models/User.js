@@ -1,15 +1,22 @@
-// models/User.js
-import mongoose from "mongoose";
+import db from "../config/db.js";
 
-const userSchema = new mongoose.Schema({
-  name: String,
-  email: { type: String, unique: true },
-  password: String,
-  role: {
-    type: String,
-    enum: ["SUPER_ADMIN"],
-    default: "SUPER_ADMIN"
-  }
-}, { timestamps: true });
+export const findUserByEmail = async (email) => {
+  const [rows] = await db.query(
+    "SELECT * FROM users WHERE email = ? LIMIT 1",
+    [email]
+  );
+  return rows[0];
+};
 
-export default mongoose.model("User", userSchema);
+export const createUser = async ({ name, email, password }) => {
+  const [result] = await db.query(
+    "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
+    [name, email, password]
+  );
+
+  return {
+    id: result.insertId,
+    name,
+    email,
+  };
+};
