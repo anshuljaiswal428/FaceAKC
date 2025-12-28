@@ -1,32 +1,37 @@
-// controllers/staff.controller.js
 import {
   createStaff as createStaffModel,
   getAllStaff as getAllStaffModel,
 } from "../models/Staff.js";
 
+import { getFaceEmbedding } from "../utils/face.utils.js";
+
 export const createStaff = async (req, res) => {
   try {
     const { name, mobile, department } = req.body;
+    const registeredBy = Number(req.user?.id);
 
-    const photo = req.file ? req.file.path : null;
-    console.log(req.user);
-    const registeredBy = Number(req.user.id);
+    if (!registeredBy || Number.isNaN(registeredBy)) {
+      return res.status(401).json({ message: "Invalid user" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: "Face image is required" });
+    }
+
+    // Generate face embedding (NO image stored)
+    const faceEmbedding = await getFaceEmbedding(req.file.buffer);
 
     const staff = await createStaffModel({
       name,
       mobile,
       department,
-      photo,
+      faceEmbedding,
       registeredBy,
     });
 
     res.status(201).json({
-      id: staff.id,
-      name,
-      mobile,
-      department,
-      photo,
-      registeredBy,
+      message: "Staff created with face data",
+      staffId: staff.id,
     });
   } catch (error) {
     res.status(500).json({

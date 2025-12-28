@@ -3,25 +3,25 @@ import db from "../config/db.js";
 export const createGuest = async ({
   guestType,
   mobile,
-  photo,
   attendantName,
   patientToMeet,
   name,
   description,
+  faceEmbedding,
   registeredBy,
 }) => {
   const [result] = await db.query(
     `INSERT INTO guests
-     (guest_type, mobile, photo, attendant_name, patient_to_meet, name, description, registered_by)
+     (guest_type, mobile, attendant_name, patient_to_meet, name, description, face_embedding, registered_by)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       guestType,
       mobile,
-      photo,
       attendantName,
       patientToMeet,
       name,
       description,
+      JSON.stringify(faceEmbedding),
       registeredBy,
     ]
   );
@@ -31,7 +31,8 @@ export const createGuest = async ({
 
 export const getAllGuests = async () => {
   const [rows] = await db.query(
-    `SELECT g.*, u.name AS registeredByName
+    `SELECT g.id, g.guest_type, g.mobile, g.created_at,
+            u.name AS registeredByName
      FROM guests g
      LEFT JOIN users u ON g.registered_by = u.id
      ORDER BY g.created_at DESC`
